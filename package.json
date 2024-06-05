@@ -16,6 +16,6 @@
     "pbkdf2-password": "^1.2.1"
   },
   "scripts": {
-    "start": "nodemon session.js"
+    "start": "nodemon app.js"
   }
 }
