@@ -97,7 +97,7 @@ module.exports = function (passport) {
       if (err) {
         return next(err);
       }
-      req.session.destroy(function (err) {
+      req.session.save(function (err) {
         if (err) {
           console.log(err);
           return next(err);
