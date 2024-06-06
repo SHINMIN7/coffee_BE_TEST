@@ -16,7 +16,6 @@ module.exports = function (app) {
 
   // 세션에서 사용자 정보 가져오기
   passport.deserializeUser(function (id, done) {
-    console.log('deserializeUser', id);
     var sql = 'SELECT * FROM user WHERE authId=?';
     conn.query(sql, [id], function (err, results) {
       if (err) {
@@ -33,7 +32,7 @@ module.exports = function (app) {
       var uname = username;
       var pwd = password;
       var sql = 'SELECT * FROM user WHERE authId=?';
-      conn.query(sql, ['local:' + uname], function (err, results) {
+      conn.query(sql, ['user' + uname], function (err, results) {
         console.log(results);
         if (err) {
           return done('There is no user');

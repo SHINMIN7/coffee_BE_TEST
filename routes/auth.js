@@ -37,7 +37,7 @@ module.exports = function (passport) {
   route.post('/register', function (req, res) {
     hasher({ password: req.body.password }, function (err, pass, salt, hash) {
       var user = {
-        authId: 'user_' + req.body.username,
+        authId: 'user' + req.body.username,
         username: req.body.username,
         password: hash,
         salt: salt,

@@ -50,11 +50,13 @@ app.use(
 const passport = require('./mysql/passport')(app);
 const auth = require('./routes/auth')(passport);
 const recipe = require('./routes/recipe')(passport);
+const mypage = require('./routes/mypage')(passport);
 
 // CORS 미들웨어 추가
 app.use(cors(corsOptions));
 app.use('/auth/', auth);
 app.use(recipe);
+app.use(mypage);
 
 const device = awsIoT.device({
   keyPath: 'resources/private.pem.key',
