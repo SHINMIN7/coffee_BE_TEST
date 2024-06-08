@@ -1,62 +1,9 @@
-const express = require('express');
-const bodyParser = require('body-parser');
-require('dotenv').config();
-
-const cors = require('cors');
+const app = require('./mysql/express')();
 const port = 8000;
 
 const awsIoT = require('aws-iot-device-sdk');
 const AWS_IOT_HOST = process.env.AWS_IOT_HOST;
 const AWS_CLIENT_ID = process.env.AWS_CLIENT_ID;
-
-const app = express();
-app.use(bodyParser.json());
-app.use(bodyParser.urlencoded({ extended: false }));
-//passport 설정
-
-const session = require('express-session');
-const MySQLStore = require('express-mysql-session')(session);
-const MYSQL_HOST = process.env.MYSQL_HOST;
-const MYSQL_USER = process.env.MYSQL_USER;
-const MYSQL_PASSWORD = process.env.MYSQL_PASSWORD;
-const MYSQL_DB = process.env.MYSQL_DB;
-
-const corsOptions = {
-  origin: 'http://localhost:3000',
-  credentials: true,
-};
-//passport 세션 설정
-app.use(
-  session({
-    secret: 'qenjwnefwefbwefjewjfw@!3f2r#R@$#$',
-    resave: false,
-    saveUninitialized: true,
-    store: new MySQLStore({
-      host: MYSQL_HOST,
-      port: 3306,
-      user: MYSQL_USER,
-      password: MYSQL_PASSWORD,
-      database: MYSQL_DB,
-    }),
-    // cookie: {
-    //   httpOnly: true,
-    //   sameSite: 'none', //클라이언트와 서버의 도메인이 다를 때 사용
-    //   // maxAge: 1000000, //클라이언트 쿠키 유지 시간
-    //   secure: true,
-    // },
-  })
-);
-
-const passport = require('./mysql/passport')(app);
-const auth = require('./routes/auth')(passport);
-const recipe = require('./routes/recipe')(passport);
-const mypage = require('./routes/mypage')(passport);
-
-// CORS 미들웨어 추가
-app.use(cors(corsOptions));
-app.use('/auth/', auth);
-app.use(recipe);
-app.use(mypage);
 
 const device = awsIoT.device({
   keyPath: 'resources/private.pem.key',
@@ -74,6 +21,15 @@ device.on('connect', (connect) => {
 device.on('message', (topic, payload) => {
   console.log('Message received', topic, payload.toString());
 });
+
+const passport = require('./mysql/passport')(app);
+const auth = require('./routes/auth')(passport);
+const recipe = require('./routes/recipe')(passport);
+const mypage = require('./routes/mypage')(passport);
+
+app.use('/auth/', auth);
+app.use(recipe);
+app.use(mypage);
 
 app.get('/welcome', function (req, res) {
   if (req.user && req.user.displayName) {

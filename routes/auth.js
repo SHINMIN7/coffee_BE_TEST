@@ -5,35 +5,6 @@ module.exports = function (passport) {
   const route = require('express').Router();
   const conn = require('../mysql/db')();
 
-  // route.get('/test', function (req, res) {
-  //   if (req.isAuthenticated()) {
-  //     res.redirect('/welcome');
-  //   } else {
-  //     res.redirect('/login');
-  //   }
-  // });
-
-  route.get('/register', function (req, res) {
-    var output = `
-  <h1>Register</h1>
-  <form action="/auth/register" method="post">
-    <p>
-      <input id="username" name="username" type="text" placeholder="username" required autofocus>
-    </p>
-    <p>
-      <input id="current-password" name="password" type="password" placeholder="password" required>
-    </p>
-    <p>
-      <input id="displayName" name="displayName" type="text" placeholder="Display Name" required>
-    </p>
-    <p>
-      <input type="submit">Sign in</input>
-    </p>  
-  </form>
-  `;
-    res.send(output);
-  });
-
   route.post('/register', function (req, res) {
     hasher({ password: req.body.password }, function (err, pass, salt, hash) {
       var user = {
@@ -52,6 +23,7 @@ module.exports = function (passport) {
         } else {
           //회원가입하고 바로 사용자를 로그인 처리
           req.login(user, function (err) {
+            //라우트를 거치지 않고 passport 모듈의 login 메소드를 호출
             req.session.save(function () {
               res.redirect('/welcome');
             });
@@ -62,30 +34,16 @@ module.exports = function (passport) {
   });
 
   //로그인하지 않은 사용자만 http:localhost:8000/auth/login에 접속 가능하다.
-  route.get('/login', isNotLoggedIn, function (req, res) {
-    var output = `
-  <h1>Login</h1>
-  <form action="/auth/login" method="post">
-    <p>
-      <input id="username" name="username" type="text" placeholder="username" required autofocus>
-    </p>
-    <p>
-      <input id="current-password" name="password" type="password" placeholder="password" required>
-    </p>
-    <p>
-      <input type="submit">Login</input>
-    </p>  
-  </form>
-  `;
-    res.send(output);
-  });
-
-  //로그인하지 않은 사용자만 http:localhost:8000/auth/login에 접속 가능하다.
+  // route.post('/login', function (req, res) {
+  //   var uname = req.body.username;
+  //   var pwd = req.body.password;
+  // })
+  //와 같이 각각 req.body.username및 req.body.password을 받는다.
   route.post(
     '/login',
     isNotLoggedIn,
     passport.authenticate('local', {
-      successRedirect: '/welcome',
+      successRedirect: '/welcome', // 이 부분 맞는 라우팅으로 수정해줄 것
       failureRedirect: '/auth/login',
       failureFlash: false,
     })

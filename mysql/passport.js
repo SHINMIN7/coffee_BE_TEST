@@ -10,19 +10,19 @@ module.exports = function (app) {
 
   // 사용자 정보를 세션에 저장
   passport.serializeUser(function (user, done) {
-    console.log('serializeUser', user);
+    // console.log('serializeUser', user);
     done(null, user.authId);
   });
 
   // 세션에서 사용자 정보 가져오기
-  passport.deserializeUser(function (id, done) {
+  passport.deserializeUser(function (authId, done) {
     var sql = 'SELECT * FROM user WHERE authId=?';
-    conn.query(sql, [id], function (err, results) {
+    conn.query(sql, [authId], function (err, results) {
       if (err) {
         console.log(err);
         done('There is no user');
       } else {
-        done(null, results[0]);
+        done(null, results[0]); //사용자 정보가 존재하므로 에러가 없고(null), 사용자 정보를 출력
       }
     });
   });
@@ -35,21 +35,25 @@ module.exports = function (app) {
       conn.query(sql, ['user' + uname], function (err, results) {
         console.log(results);
         if (err) {
-          return done('There is no user');
+          return cb('There is no user');
         }
         var user = results[0];
+        console.log(user);
         return hasher(
           { password: pwd, salt: user.salt },
           function (err, pass, salt, hash) {
             if (hash === user.password) {
-              console.log('LocalStrategy', user);
-              cb(null, user);
+              return cb(null, user);
+              //req.session.displayName = user.displayName;
+              //req.session.save(function(){ res.redirect('/welcome')};)
             } else {
-              cb(null, false);
+              return cb(null, false);
+              //res.send('who are you?');
             }
           }
         );
       });
+      // return cb(null, false); //res.send('who are you?');
     })
   );
   return passport;
