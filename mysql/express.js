@@ -37,12 +37,12 @@ module.exports = function () {
         password: MYSQL_PASSWORD,
         database: MYSQL_DB,
       }),
-      // cookie: {
-      //   httpOnly: true,
-      //   sameSite: 'none', //클라이언트와 서버의 도메인이 다를 때 사용
-      //   // maxAge: 1000000, //클라이언트 쿠키 유지 시간
-      //   secure: true,
-      // },
+      cookie: {
+        httpOnly: true,
+        sameSite: 'none', //클라이언트와 서버의 도메인이 다를 때 사용
+        // maxAge: 1000000, //클라이언트 쿠키 유지 시간
+        secure: false,
+      },
     })
   );
 

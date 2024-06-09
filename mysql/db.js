@@ -11,6 +11,7 @@ module.exports = function () {
     user: MYSQL_USER,
     password: MYSQL_PASSWORD,
     database: MYSQL_DB,
+    timezone: 'Asia/Seoul', // 타임존 설정
     port: 3306,
   });
 

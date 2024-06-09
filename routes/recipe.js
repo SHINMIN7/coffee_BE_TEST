@@ -6,7 +6,7 @@ module.exports = function (passport) {
   const openai = new OpenAI({
     apiKey: OPENAI_API_KEY,
   });
-  const { isLoggedIn, isNotLoggedIn } = require('./middlewares'); // 사용자 미들웨어
+  const { isLoggedIn } = require('./middlewares'); // 사용자 미들웨어
   const route = require('express').Router();
 
   route.post('/cup-note', isLoggedIn, async (req, res) => {
@@ -41,6 +41,62 @@ module.exports = function (passport) {
         res.send('Message published successfully');
       }
     });
+  });
+
+  //coffeeinfo 테이블에 저장
+  route.post('/coffeeinfo/save', isLoggedIn, async (req, res) => {
+    try {
+      const user_id = req.user.authId; // 세션에 저장된 authId 값
+      const {
+        title,
+        origin,
+        roasting,
+        process,
+        cupNote,
+        coffeeType,
+        coffeeFlavor,
+        flavorIntensity,
+        userPreferences,
+      } = req.body;
+
+      var sql = `INSERT INTO coffeeinfo (
+          title,
+          origin,
+          roasting,
+          process,
+          cupNote,
+          coffeeType,
+          coffeeFlavor,
+          flavorIntensity,
+          userPreferences,
+          user_id)
+        VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`;
+      conn.query(
+        sql,
+        [
+          title,
+          origin,
+          roasting,
+          process,
+          cupNote,
+          coffeeType,
+          coffeeFlavor,
+          flavorIntensity,
+          userPreferences,
+          user_id,
+        ],
+        function (err, rows, fields) {
+          if (err) {
+            console.log(err);
+            res.status(500).send('SQL Query Failed to save recipe information');
+          } else {
+            res.send('recipe information saved successfully');
+          }
+        }
+      );
+    } catch (error) {
+      res.status(500).send('Failed to save recipe information ');
+    }
   });
 
   route.post('/chatgpt', isLoggedIn, async (req, res) => {

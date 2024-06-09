@@ -39,15 +39,30 @@ module.exports = function (passport) {
   //   var pwd = req.body.password;
   // })
   //와 같이 각각 req.body.username및 req.body.password을 받는다.
-  route.post(
-    '/login',
-    isNotLoggedIn,
-    passport.authenticate('local', {
-      successRedirect: '/welcome', // 이 부분 맞는 라우팅으로 수정해줄 것
-      failureRedirect: '/auth/login',
-      failureFlash: false,
-    })
-  );
+  route.post('/login', isNotLoggedIn, (req, res, next) => {
+    passport.authenticate('local', (err, user, info) => {
+      if (err) {
+        return res
+          .status(500)
+          .json({ success: false, message: 'An error occurred', error: err });
+      }
+      if (!user) {
+        return res
+          .status(401)
+          .json({ success: false, message: 'Login failed' });
+      }
+      req.logIn(user, (err) => {
+        if (err) {
+          return res
+            .status(500)
+            .json({ success: false, message: 'Login failed', error: err });
+        }
+        return res
+          .status(200)
+          .json({ success: true, message: 'Login successful', user });
+      });
+    })(req, res, next);
+  });
 
   //로그인한 사용자만 http:localhost:8000/auth/logout에 접속 가능하다.
   route.get('/logout', isLoggedIn, function (req, res) {
@@ -60,8 +75,41 @@ module.exports = function (passport) {
           console.log(err);
           return next(err);
         }
+      });
+    });
+  });
 
-        res.redirect('/welcome');
+  // 테스트해봐야 함.
+  // 회원 탈퇴 라우트
+  route.delete('/user/delete', isLoggedIn, (req, res) => {
+    const authId = req.user.authId; // 세션에 저장된 authId 값
+
+    // 사용자 정보 삭제 쿼리
+    const deleteUserSql = 'DELETE FROM user WHERE authId = ?';
+    conn.query(deleteUserSql, [authId], (err, result) => {
+      if (err) {
+        console.log(err);
+        return res.status(500).send('Failed to delete user');
+      }
+
+      if (result.affectedRows === 0) {
+        return res.status(404).send('User not found');
+      }
+
+      // 모든 세션 정보 삭제
+      req.logout(function (err) {
+        if (err) {
+          return res.status(500).send('Failed to log out');
+        }
+
+        // 세션 스토어의 모든 세션을 삭제
+        req.session.destroy((err) => {
+          if (err) {
+            console.log(err);
+            return res.status(500).send('Failed to destroy session');
+          }
+          res.send('User deleted and logged out successfully');
+        });
       });
     });
   });
