@@ -10,6 +10,7 @@ module.exports = function () {
   app.use(bodyParser.urlencoded({ extended: false }));
 
   const session = require('express-session');
+  const SESSION_KEY = process.env.SESSION_KEY;
   const MySQLStore = require('express-mysql-session')(session);
   const MYSQL_HOST = process.env.MYSQL_HOST;
   const MYSQL_USER = process.env.MYSQL_USER;
@@ -25,9 +26,10 @@ module.exports = function () {
   app.use(cors(corsOptions));
 
   //passport 세션 설정
+  //qenjwnefwefbwefjewjfw@!3f2r#R@$#$
   app.use(
     session({
-      secret: 'qenjwnefwefbwefjewjfw@!3f2r#R@$#$',
+      secret: SESSION_KEY,
       resave: false,
       saveUninitialized: true,
       store: new MySQLStore({
@@ -41,7 +43,7 @@ module.exports = function () {
         httpOnly: true,
         sameSite: 'none', //클라이언트와 서버의 도메인이 다를 때 사용
         // maxAge: 1000000, //클라이언트 쿠키 유지 시간
-        secure: false,
+        secure: false, //배포시 true로 변경
       },
     })
   );

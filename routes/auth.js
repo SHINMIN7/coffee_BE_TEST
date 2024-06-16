@@ -65,21 +65,25 @@ module.exports = function (passport) {
   });
 
   //로그인한 사용자만 http:localhost:8000/auth/logout에 접속 가능하다.
-  route.get('/logout', isLoggedIn, function (req, res) {
+  // 로그아웃 라우트
+  route.get('/logout', isLoggedIn, function (req, res, next) {
     req.logout(function (err) {
       if (err) {
-        return next(err);
+        return next(err); // 에러 발생 시 다음 미들웨어로 에러 전달
       }
-      req.session.save(function (err) {
+      req.session.destroy(function (err) {
         if (err) {
           console.log(err);
-          return next(err);
+          return next(err); // 에러 발생 시 다음 미들웨어로 에러 전달
         }
+        // 세션이 성공적으로 파괴되면 클라이언트에 응답 반환
+        res
+          .status(200)
+          .json({ success: true, message: 'Logged out successfully' });
       });
     });
   });
 
-  // 테스트해봐야 함.
   // 회원 탈퇴 라우트
   route.delete('/user/delete', isLoggedIn, (req, res) => {
     const authId = req.user.authId; // 세션에 저장된 authId 값

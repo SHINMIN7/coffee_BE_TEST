@@ -3,6 +3,63 @@ module.exports = function (passport) {
   const { isLoggedIn } = require('./middlewares'); // 사용자 미들웨어
   const conn = require('../mysql/db')();
 
+  //coffeeinfo 테이블에 저장
+  route.post('/coffeeinfo/save', isLoggedIn, async (req, res) => {
+    try {
+      const user_id = req.user.authId; // 세션에 저장된 authId 값
+      const {
+        title,
+        origin,
+        roasting,
+        process,
+        cupNote,
+        coffeeType,
+        coffeeFlavor,
+        flavorIntensity,
+        userPreferences,
+      } = req.body;
+
+      var sql = `INSERT INTO coffeeinfo (
+          title,
+          origin,
+          roasting,
+          process,
+          cupNote,
+          coffeeType,
+          coffeeFlavor,
+          flavorIntensity,
+          userPreferences,
+          user_id)
+        VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`;
+      conn.query(
+        sql,
+        [
+          title,
+          origin,
+          roasting,
+          process,
+          cupNote,
+          coffeeType,
+          coffeeFlavor,
+          flavorIntensity,
+          userPreferences,
+          user_id,
+        ],
+        function (err, rows, fields) {
+          if (err) {
+            console.log(err);
+            res.status(500).send('SQL Query Failed to save recipe information');
+          } else {
+            res.send('recipe information saved successfully');
+          }
+        }
+      );
+    } catch (error) {
+      console.log(error);
+      res.status(500).send('Failed to save recipe information ');
+    }
+  });
+
   //레시피 저장하기 버튼을 누르면 해당 라우트로 호출
   route.post('/recipe/save', isLoggedIn, async (req, res) => {
     try {
@@ -136,7 +193,7 @@ module.exports = function (passport) {
   // 레시피 삭제
   route.delete('/recipe/:id', isLoggedIn, async (req, res) => {
     var recipe_id = req.params.id;
-    var sql = 'DELETE from recipe where recipe_id=? AND user_id=?';
+    var sql = 'DELETE from recipe where coffeeinfo_id=? AND user_id=?';
     conn.query(sql, [recipe_id, req.user.authId], function (err, result) {
       if (err) {
         console.log(err);
